@@ -11,15 +11,26 @@
     tools:context="com.ulyssesp.fitnesspomodoro.MainActivity">
 
     <TextView
-        android:id="@+id/main_text"
-        android:layout_width="wrap_content"
+        android:id="@+id/text_inactive_timer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:text="No Timer"
+        android:visibility="gone"/>
+
+    <com.ulyssesp.fitnesspomodoro.ActiveTimerView
+        android:id="@+id/timer_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        />
 
     <Button
         android:id="@+id/btn_change_timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Next timer"/>
+        android:text="Next timer"
+        android:layout_marginTop="32dp"
+        />
 
 </LinearLayout>

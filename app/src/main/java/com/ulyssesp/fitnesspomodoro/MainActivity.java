@@ -2,6 +2,7 @@ package com.ulyssesp.fitnesspomodoro;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.TextView;
 
 import com.ulyssesp.fitnesspomodoro.flrx.Action;
@@ -20,8 +21,8 @@ import rx.android.schedulers.AndroidSchedulers;
 public class MainActivity extends AppCompatActivity {
     private Dispatcher<Constants.Action> mDispatcher;
     private TimerStore mStore;
-
-    private TextView mTextView;
+    private ActiveTimerView mActiveTimerView;
+    private TextView mInactiveTimerView;
 
     private int mCurrentTimerPosition;
 
@@ -33,32 +34,35 @@ public class MainActivity extends AppCompatActivity {
         mDispatcher = new Dispatcher<>(EnumSet.allOf(Constants.Action.class));
         mStore = new TimerStore(mDispatcher);
 
-        mTextView = (TextView) findViewById(R.id.main_text);
+        mInactiveTimerView = (TextView) findViewById(R.id.text_inactive_timer);
+        mActiveTimerView = (ActiveTimerView) findViewById(R.id.timer_view);
 
         mStore.dataObservable()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe((TimerStoreModel timerStoreModel) -> {
                 if(timerStoreModel.timers().size() - 1 < timerStoreModel.timerPosition()) {
-                    mTextView.setText("Inactive");
+                    showTimer(false);
                     return;
                 }
 
+                showTimer(true);
+
                 mCurrentTimerPosition = timerStoreModel.timerPosition();
 
-                long timerDuration =
-                    timerStoreModel.timers().get(timerStoreModel.timerPosition()).duration();
-                long currentTime = timerStoreModel.currentTime();
-                long currentDuration = timerStoreModel.currentDuration();
+                long timerDuration = timerStoreModel.duration();
+
                 boolean paused = timerStoreModel.paused();
 
-                long prevElapsedMillis = timerDuration - currentDuration;
-                long elapsedMillis =
-                    (currentTime - timerStoreModel.startTime()) + prevElapsedMillis;
-                long timeRemaining = timerDuration - elapsedMillis;
+                long sectionTimeCompleted =
+                        timerStoreModel.currentTime() - timerStoreModel.startTime();
+                long timeCompleted = sectionTimeCompleted + timerStoreModel.previouslyCompleted();
+                long timeRemaining = timerDuration - timeCompleted;
 
-                float percentDone = (float) elapsedMillis / (float) timerDuration;
+                float percentDone = (float) timeCompleted / (float) timerDuration;
 
-                mTextView.setText(String.valueOf(percentDone));
+                ActiveTimerView.Model model =
+                        ActiveTimerView.Model.create(timeRemaining, percentDone, paused);
+                mActiveTimerView.update(model);
             });
 
         Observable.interval(16, TimeUnit.MILLISECONDS)
@@ -77,5 +81,10 @@ public class MainActivity extends AppCompatActivity {
                 ));
 
         mDispatcher.postAction(Action.create(Constants.Action.FETCH_TIMERS));
+    }
+
+    private void showTimer(boolean show) {
+        mInactiveTimerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mActiveTimerView.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 }

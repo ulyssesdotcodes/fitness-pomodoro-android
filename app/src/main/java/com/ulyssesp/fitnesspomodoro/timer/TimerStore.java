@@ -27,8 +27,16 @@ public class TimerStore extends Store<TimerStoreModel, Constants.Action> {
 
     @Override
     protected TimerStoreModel initialState() {
-        return TimerStoreModel.create(Collections.emptyList(), new Date().getTime(),
-            Boolean.TRUE, 0L, new Date().getTime(), 0);
+        return TimerStoreModel.create(
+                Collections.emptyList(),
+                Boolean.TRUE,
+                new Date().getTime(),
+                "",
+                0L,
+                0L,
+                new Date().getTime(),
+                0,
+                0);
     }
 
     @Override
@@ -40,12 +48,16 @@ public class TimerStore extends Store<TimerStoreModel, Constants.Action> {
                 TickTimerModel.fromParcel((Parcel) action.getPayload().get());
 
             result = TimerStoreModel.create(
-                state.timers(),
-                state.startTime(),
-                false,
-                state.currentDuration(),
-                payload.currentTime(),
-                state.timerPosition());
+                    state.timers(),
+                    false,
+                    payload.currentTime(),
+                    state.name(),
+                    state.duration(),
+                    state.previouslyCompleted(),
+                    state.startTime(),
+                    state.notifications(),
+                    state.timerPosition()
+                );
         }  else if (action.getType()==Constants.Action.NEXT_TIMER && action.getPayload().isPresent()) {
             NextTimerModel payload = NextTimerModel.fromParcel((Parcel) action.getPayload().get());
 
@@ -55,10 +67,13 @@ public class TimerStore extends Store<TimerStoreModel, Constants.Action> {
             if(newPosition != state.timerPosition()) {
                 result = TimerStoreModel.create(
                         state.timers(),
-                        payload.currentTime(),
                         false,
-                        newTimer.duration(),
                         payload.currentTime(),
+                        newTimer.name(),
+                        newTimer.duration(),
+                        0L,
+                        payload.currentTime(),
+                        0,
                         newPosition
                     );
             }
@@ -72,11 +87,14 @@ public class TimerStore extends Store<TimerStoreModel, Constants.Action> {
                 ReceiveTimersModel.fromParcel((Parcel) action.getPayload().get());
             result = TimerStoreModel.create(
                     payload.timers(),
+                    false,
                     state.currentTime(),
-                    state.paused(),
+                    payload.timers().get(state.timerPosition()).name(),
                     payload.timers().get(state.timerPosition()).duration(),
+                    0L,
                     state.currentTime(),
-                    state.timerPosition()
+                    state.timerPosition(),
+                    0
                 );
         }
 
