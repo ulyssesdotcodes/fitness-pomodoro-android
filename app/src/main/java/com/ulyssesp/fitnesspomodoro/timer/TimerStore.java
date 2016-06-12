@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 
+import rx.Single;
+
 import static com.ulyssesp.fitnesspomodoro.Constants.Action.FETCH_TIMERS;
 import static com.ulyssesp.fitnesspomodoro.Constants.Action.NEXT_TIMER;
 import static com.ulyssesp.fitnesspomodoro.Constants.Action.RECEIVE_TIMERS;
@@ -61,27 +63,34 @@ public class TimerStore extends Store<TimerStoreModel, Constants.Action> {
         }  else if (action.getType()==Constants.Action.NEXT_TIMER && action.getPayload().isPresent()) {
             NextTimerModel payload = NextTimerModel.fromParcel((Parcel) action.getPayload().get());
 
-            int newPosition = (payload.currentPosition() + 1) % state.timers().size();
-            Timer newTimer = state.timers().get(newPosition);
-
-            if(newPosition != state.timerPosition()) {
-                result = TimerStoreModel.create(
-                        state.timers(),
-                        false,
-                        payload.currentTime(),
-                        newTimer.name(),
-                        newTimer.duration(),
-                        0L,
-                        payload.currentTime(),
-                        0,
-                        newPosition
-                    );
+            if (state.timers().isEmpty()) {
+                postAction(Action.create(Constants.Action.RECEIVE_TIMERS,
+                    Single.fromCallable(() -> ReceiveTimersModel.create(Arrays.asList(TimerData.TIMERS)))));
             }
+            else {
+                int newPosition = (payload.currentPosition() + 1) % state.timers().size();
+                Timer newTimer = state.timers().get(newPosition);
 
-            postAction(Action.create(TIMER_CHANGED, TimerChangedModel.create(newTimer)));
+                if (newPosition != state.timerPosition()) {
+                    result = TimerStoreModel.create(
+                            state.timers(),
+                            false,
+                            payload.currentTime(),
+                            newTimer.name(),
+                            newTimer.duration(),
+                            0L,
+                            payload.currentTime(),
+                            0,
+                            newPosition
+                    );
+                }
+
+                postAction(Action.create(TIMER_CHANGED,
+                        Single.fromCallable(() -> TimerChangedModel.create(newTimer))));
+            }
         } else if(action.getType()==FETCH_TIMERS) {
             postAction(Action.create(Constants.Action.RECEIVE_TIMERS,
-                ReceiveTimersModel.create(Arrays.asList(TimerData.TIMERS))));
+                Single.fromCallable(() -> ReceiveTimersModel.create(Arrays.asList(TimerData.TIMERS)))));
         } else if (action.getType()==RECEIVE_TIMERS) {
             ReceiveTimersModel payload =
                 ReceiveTimersModel.fromParcel((Parcel) action.getPayload().get());

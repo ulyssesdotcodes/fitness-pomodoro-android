@@ -6,36 +6,42 @@ import android.os.Parcelable;
 
 import com.ulyssesp.fitnesspomodoro.utils.Optional;
 
+import rx.Single;
+
 public class Action<R extends Enum<R>> {
-    Action(R type, Optional<Parcelable> payload) {
+    private R mType;
+    private Single<Optional<Parcel>> mPayloadFunc;
+
+    Action(R type, Single<Optional<Parcelable>> payloadFunc) {
         this.mType = type;
-        this.mPayload = payload.transform((parcelable) -> {
-            Parcel p = Parcel.obtain();
-            parcelable.writeToParcel(p, 0);
-            Parcel p2 = Parcel.obtain();
-            final byte[] bytes = p.marshall();
-            p2.unmarshall(bytes, 0, bytes.length);
-            p2.setDataPosition(0);
-            return p2;
-        });
+        mPayloadFunc =
+            payloadFunc
+                .map((opt) ->
+                    opt.transform((parcelable) -> {
+                        Parcel p = Parcel.obtain();
+                        parcelable.writeToParcel(p, 0);
+                        Parcel p2 = Parcel.obtain();
+                        final byte[] bytes = p.marshall();
+                        p2.unmarshall(bytes, 0, bytes.length);
+                        p2.setDataPosition(0);
+                        return p2;
+                    })
+                );
     }
 
-    public static <R extends Enum<R>> Action<R> create(R type, Parcelable dataModel) {
-        return new Action<>(type, Optional.of(dataModel));
+    public static <R extends Enum<R>> Action<R> create(R type, Single<Parcelable> dataModel) {
+        return new Action<>(type, dataModel.map(Optional::of));
     }
 
     public static <R extends Enum<R>> Action<R> create(R type) {
-        return new Action<>(type, Optional.absent());
+        return new Action<>(type, Single.just(Optional.absent()));
     }
-
-    private R mType;
-    private Optional<Parcel> mPayload;
 
     public R getType() {
         return mType;
     }
 
     public Optional<Parcel> getPayload() {
-        return mPayload;
+        return mPayloadFunc.toBlocking().value();
     }
 }

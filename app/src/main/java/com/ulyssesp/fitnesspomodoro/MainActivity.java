@@ -16,6 +16,7 @@ import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         Observable.interval(16, TimeUnit.MILLISECONDS)
             .subscribe(__ ->
                 mDispatcher.postAction(Action.create(Constants.Action.TICK_TIMER,
-                    TickTimerModel.create(System.currentTimeMillis()))));
+                    Single.fromCallable(() -> TickTimerModel.create(System.currentTimeMillis())))));
 
         assert findViewById(R.id.btn_change_timer) != null;
         findViewById(R.id.btn_change_timer)
@@ -76,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
                 mDispatcher.postAction(
                     Action.create(
                         Constants.Action.NEXT_TIMER,
-                        NextTimerModel.create(System.currentTimeMillis(), mCurrentTimerPosition)
+                        Single.fromCallable(() ->
+                            NextTimerModel.create(System.currentTimeMillis(), mCurrentTimerPosition))
                     )
                 ));
 

@@ -1,6 +1,7 @@
 package com.ulyssesp.fitnesspomodoro;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,6 +10,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 
 import com.google.auto.value.AutoValue;
@@ -16,10 +18,12 @@ import com.google.auto.value.AutoValue;
 public class ActiveTimerView extends View {
     private static final int COMPLETED_COLOR = 0xff00E676;
     private static final float CIRCLE_STROKE_MODIFIER = 1f / 80f;
+    private static final int TEXT_SIZE_DP = 32;
 
     private Paint mCompletedPaint = new Paint();
     private Paint mCompletedCirclePaint = new Paint();
     private Paint mIncompletePaint = new Paint();
+    private Paint mTextPaint = new Paint();
     private RectF mBounds;
     private Model mModel;
 
@@ -47,6 +51,15 @@ public class ActiveTimerView extends View {
 
         mCompletedCirclePaint.setColor(COMPLETED_COLOR);
         mCompletedCirclePaint.setStyle(Paint.Style.FILL);
+
+        float textSize =
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DP,
+                    context.getResources().getDisplayMetrics());
+
+        mTextPaint.setTextSize(textSize);
+        mTextPaint.setColor(0xff000000);
+        mTextPaint.setStyle(Paint.Style.FILL);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
@@ -62,10 +75,10 @@ public class ActiveTimerView extends View {
 
         float strokeWidth = w * CIRCLE_STROKE_MODIFIER;
         float completedCircleStrokeWidth = strokeWidth * 1.5f;
-        float circleWidth = w - completedCircleStrokeWidth * 2f;
-        float margin = strokeWidth * 2f;
+        float margin = completedCircleStrokeWidth ;
+        float circleWidth = w - 2 * margin;
 
-        mBounds = new RectF(margin, margin, circleWidth, circleWidth);
+        mBounds = new RectF(margin, margin, circleWidth + margin, circleWidth + margin);
 
         mIncompletePaint.setStrokeWidth(strokeWidth);
         mCompletedPaint.setStrokeWidth(strokeWidth);
@@ -89,7 +102,7 @@ public class ActiveTimerView extends View {
 
         canvas.drawCircle(r + mBounds.left, r + mBounds.top, r, mIncompletePaint);
 
-        double a = 360 * mModel.percentDone();
+        double a = 360 * Math.min(mModel.percentDone(), 1);
         float start = (float) -a - 90;
         float sweep = (float) a;
         canvas.drawArc(mBounds, start, sweep, false, mCompletedPaint);
@@ -97,6 +110,20 @@ public class ActiveTimerView extends View {
         float xPos = r * (float) Math.cos(Math.toRadians(start));
         float yPos = r * (float) Math.sin(Math.toRadians(start));
         canvas.drawCircle(xPos + r + mBounds.left, yPos + r + mBounds.top,
-                mBounds.width() / 40, mCompletedCirclePaint);
+                mCompletedCirclePaint.getStrokeWidth(), mCompletedCirclePaint);
+
+        float secondsRemaining = Math.abs(mModel.timeRemaining() / 1000f);
+        String timeSign = mModel.timeRemaining() > 0 ? "" : "-";
+
+        String time =
+            String.format("%02d:%02d",
+                    (int) secondsRemaining / 60,
+                    (int) secondsRemaining % 60
+            );
+
+        float ascentAdjust = (mTextPaint.ascent() + mTextPaint.descent()) * 0.5f;
+
+        canvas.drawText( timeSign + time, mBounds.left + r,
+                mBounds.top + r - ascentAdjust, mTextPaint );
     }
 }
