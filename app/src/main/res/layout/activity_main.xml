@@ -16,21 +16,13 @@
         android:layout_height="wrap_content"
         android:text="No Timer"
         android:visibility="gone"/>
-
-    <com.ulyssesp.fitnesspomodoro.ActiveTimerView
-        android:id="@+id/timer_view"
+    
+    <fragment
+        android:name="com.ulyssesp.fitnesspomodoro.ui.timer.TimerFragment"
+        android:id="@+id/fragment_timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
         />
 
-    <Button
-        android:id="@+id/btn_change_timer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Next timer"
-        android:layout_marginTop="32dp"
-        />
 
 </LinearLayout>

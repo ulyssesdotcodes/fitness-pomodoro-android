@@ -1,10 +1,10 @@
-package com.ulyssesp.fitnesspomodoro.timer;
+package com.ulyssesp.fitnesspomodoro.data.timer;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.auto.value.AutoValue;
-import com.ulyssesp.fitnesspomodoro.models.Timer;
+import com.ulyssesp.fitnesspomodoro.data.models.Timer;
 
 @AutoValue
 public abstract class TimerChangedModel implements Parcelable {

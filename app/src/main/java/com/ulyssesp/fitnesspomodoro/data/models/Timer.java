@@ -1,4 +1,4 @@
-package com.ulyssesp.fitnesspomodoro.models;
+package com.ulyssesp.fitnesspomodoro.data.models;
 
 import android.os.Parcelable;
 
