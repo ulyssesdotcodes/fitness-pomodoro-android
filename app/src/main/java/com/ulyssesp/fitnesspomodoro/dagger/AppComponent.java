@@ -8,7 +8,7 @@ import javax.inject.Singleton;
 import dagger.Component;
 
 @Singleton
-@Component(modules={TimerModule.class})
+@Component(modules={DispatcherModule.class, ExerciseModule.class, TimerModule.class})
 public interface AppComponent {
     void inject (MainActivity activity);
     void inject (TimerFragment fragment);

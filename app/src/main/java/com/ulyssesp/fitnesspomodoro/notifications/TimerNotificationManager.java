@@ -16,7 +16,7 @@ import com.ulyssesp.fitnesspomodoro.flrx.Dispatcher;
 public class TimerNotificationManager {
     NotificationManager mNotificationManager;
 
-    public TimerNotificationManager(TimerStore timerStore, final Dispatcher<Constants.TimerActions> dispatcher, Context context){
+    public TimerNotificationManager(TimerStore timerStore, final Dispatcher<Constants.Actions> dispatcher, Context context){
         mNotificationManager =
             (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -51,7 +51,7 @@ public class TimerNotificationManager {
 
                 mNotificationManager.notify(completedTimer.notifications(), builder.build());
 
-                dispatcher.postAction(Action.create(Constants.TimerActions.INCREMENT_NOTIFICATIONS));
+                dispatcher.postAction(Action.create(Constants.Actions.INCREMENT_NOTIFICATIONS));
             });
     }
 }

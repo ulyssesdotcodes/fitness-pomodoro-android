@@ -1,4 +1,4 @@
-package com.ulyssesp.fitnesspomodoro.data.models;
+package com.ulyssesp.fitnesspomodoro.data.timer;
 
 import android.os.Parcelable;
 

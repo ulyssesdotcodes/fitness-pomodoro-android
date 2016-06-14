@@ -12,6 +12,8 @@ import android.widget.TextView;
 import com.ulyssesp.fitnesspomodoro.Constants;
 import com.ulyssesp.fitnesspomodoro.FitnessPomodoroApplication;
 import com.ulyssesp.fitnesspomodoro.R;
+import com.ulyssesp.fitnesspomodoro.data.exercise.Exercise;
+import com.ulyssesp.fitnesspomodoro.data.exercise.ExerciseStore;
 import com.ulyssesp.fitnesspomodoro.data.timer.NextTimerModel;
 import com.ulyssesp.fitnesspomodoro.data.timer.PauseTimerModel;
 import com.ulyssesp.fitnesspomodoro.data.timer.TickTimerModel;
@@ -19,6 +21,7 @@ import com.ulyssesp.fitnesspomodoro.data.timer.TimerStore;
 import com.ulyssesp.fitnesspomodoro.data.timer.TimerStoreModel;
 import com.ulyssesp.fitnesspomodoro.flrx.Action;
 import com.ulyssesp.fitnesspomodoro.flrx.Dispatcher;
+import com.ulyssesp.fitnesspomodoro.utils.Optional;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,16 +31,21 @@ import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 
 public class TimerFragment extends Fragment {
-    @Inject
-    Dispatcher<Constants.TimerActions> mDispatcher;
+    @Inject Dispatcher<Constants.Actions> mDispatcher;
 
-    @Inject
-    TimerStore mTimerStore;
+    @Inject TimerStore mTimerStore;
+
+    @Inject ExerciseStore mExerciseStore;
 
     private ActiveTimerView mActiveTimerView;
     private TextView mTimeRemaining;
     private FloatingActionButton mPauseFab;
     private FloatingActionButton mUnpauseFab;
+
+    private ViewGroup mExercise;
+    private TextView mExerciseTextName;
+    private TextView mExerciseTextReps;
+    private TextView mExerciseTextUnits;
 
     public TimerFragment() {
         // Required empty public constructor
@@ -85,9 +93,24 @@ public class TimerFragment extends Fragment {
                 togglePause(timerStoreModel.paused());
             });
 
+        mExerciseStore.dataObservable()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(exerciseStore -> {
+                Optional<Exercise> exercise = exerciseStore.currentExercise();
+                if (exercise.isPresent()) {
+                    mExercise.setVisibility(View.VISIBLE);
+                    mExerciseTextName.setText(exercise.get().name());
+                    mExerciseTextReps.setText(exercise.get().reps().toString());
+                    mExerciseTextUnits.setText(exercise.get().units());
+                }
+                else {
+                    mExercise.setVisibility(View.GONE);
+                }
+            });
+
         Observable.interval(16, TimeUnit.MILLISECONDS)
             .subscribe(__ ->
-                mDispatcher.postAction(Action.create(Constants.TimerActions.TICK_TIMER,
+                mDispatcher.postAction(Action.create(Constants.Actions.TICK_TIMER,
                     TickTimerModel.create(System.currentTimeMillis()))));
     }
 
@@ -102,11 +125,16 @@ public class TimerFragment extends Fragment {
         mPauseFab = (FloatingActionButton) view.findViewById(R.id.btn_pause_timer);
         mUnpauseFab = (FloatingActionButton) view.findViewById(R.id.btn_unpause_timer);
 
+        mExercise = (ViewGroup) view.findViewById(R.id.group_exercise);
+        mExerciseTextName = (TextView) view.findViewById(R.id.text_exercise_name);
+        mExerciseTextReps = (TextView) view.findViewById(R.id.text_exercise_reps);
+        mExerciseTextUnits = (TextView) view.findViewById(R.id.text_exercise_units);
+
         view.findViewById(R.id.btn_change_timer)
             .setOnClickListener((e) ->
                 mDispatcher.postAction(
                     Action.create(
-                        Constants.TimerActions.NEXT_TIMER,
+                        Constants.Actions.NEXT_TIMER,
                         NextTimerModel.create(System.currentTimeMillis())
                     )
                 ));
@@ -114,7 +142,7 @@ public class TimerFragment extends Fragment {
         View.OnClickListener togglePause = (v) ->
             mDispatcher.postAction(
                 Action.create(
-                    Constants.TimerActions.PAUSE_TIMER,
+                    Constants.Actions.PAUSE_TIMER,
                     PauseTimerModel.create(System.currentTimeMillis())
                 )
             );
@@ -122,7 +150,8 @@ public class TimerFragment extends Fragment {
         mPauseFab.setOnClickListener(togglePause);
         mUnpauseFab.setOnClickListener(togglePause);
 
-        mDispatcher.postAction(Action.create(Constants.TimerActions.FETCH_TIMERS));
+        mDispatcher.postAction(Action.create(Constants.Actions.FETCH_TIMERS));
+        mDispatcher.postAction(Action.create(Constants.Actions.FETCH_EXERCISES));
         return view;
     }
 

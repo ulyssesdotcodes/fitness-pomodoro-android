@@ -3,7 +3,6 @@ package com.ulyssesp.fitnesspomodoro.data.timer;
 import android.os.Parcel;
 
 import com.ulyssesp.fitnesspomodoro.Constants;
-import com.ulyssesp.fitnesspomodoro.data.models.Timer;
 import com.ulyssesp.fitnesspomodoro.flrx.Action;
 import com.ulyssesp.fitnesspomodoro.flrx.Dispatcher;
 import com.ulyssesp.fitnesspomodoro.flrx.Store;
@@ -13,16 +12,25 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 
-import static com.ulyssesp.fitnesspomodoro.Constants.TimerActions.FETCH_TIMERS;
-import static com.ulyssesp.fitnesspomodoro.Constants.TimerActions.INCREMENT_NOTIFICATIONS;
-import static com.ulyssesp.fitnesspomodoro.Constants.TimerActions.PAUSE_TIMER;
-import static com.ulyssesp.fitnesspomodoro.Constants.TimerActions.RECEIVE_TIMERS;
-import static com.ulyssesp.fitnesspomodoro.Constants.TimerActions.TIMER_CHANGED;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.FETCH_TIMERS;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.INCREMENT_NOTIFICATIONS;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.NEXT_TIMER;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.PAUSE_TIMER;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.RECEIVE_TIMERS;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.TICK_TIMER;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.TIMER_CHANGED;
 
-public class TimerStore extends Store<TimerStoreModel, Constants.TimerActions> {
+public class TimerStore extends Store<TimerStoreModel, Constants.Actions> {
 
-    public TimerStore(Dispatcher<Constants.TimerActions> dispatcher) {
-        super(dispatcher, EnumSet.allOf(Constants.TimerActions.class));
+    public TimerStore(Dispatcher<Constants.Actions> dispatcher) {
+        super(dispatcher, EnumSet.of(
+            FETCH_TIMERS,
+            NEXT_TIMER,
+            PAUSE_TIMER,
+            RECEIVE_TIMERS,
+            TICK_TIMER,
+            INCREMENT_NOTIFICATIONS
+        ));
     }
 
     @Override
@@ -44,7 +52,7 @@ public class TimerStore extends Store<TimerStoreModel, Constants.TimerActions> {
     public TimerStoreModel reducer(TimerStoreModel state, Action action) {
         TimerStoreModel result = state;
 
-        if (action.getType()== Constants.TimerActions.TICK_TIMER && action.getPayload().isPresent()) {
+        if (action.getType()== TICK_TIMER && action.getPayload().isPresent()) {
             TickTimerModel payload =
                 TickTimerModel.fromParcel((Parcel) action.getPayload().get());
 
@@ -53,11 +61,11 @@ public class TimerStore extends Store<TimerStoreModel, Constants.TimerActions> {
                     .currentTime(payload.currentTime())
                     .build();
             }
-        }  else if (action.getType()== Constants.TimerActions.NEXT_TIMER && action.getPayload().isPresent()) {
+        }  else if (action.getType()== NEXT_TIMER && action.getPayload().isPresent()) {
             NextTimerModel payload = NextTimerModel.fromParcel((Parcel) action.getPayload().get());
 
             if (state.timers().isEmpty()) {
-                postAction(Action.create(Constants.TimerActions.RECEIVE_TIMERS,
+                postAction(Action.create(RECEIVE_TIMERS,
                     ReceiveTimersModel.create(Arrays.asList(TimerData.TIMERS), payload.currentTime())
                 ));
             }
@@ -81,7 +89,7 @@ public class TimerStore extends Store<TimerStoreModel, Constants.TimerActions> {
                 postAction(Action.create(TIMER_CHANGED, TimerChangedModel.create(newTimer)));
             }
         } else if(action.getType()==FETCH_TIMERS) {
-            postAction(Action.create(Constants.TimerActions.RECEIVE_TIMERS,
+            postAction(Action.create(RECEIVE_TIMERS,
                 ReceiveTimersModel.create(Arrays.asList(TimerData.TIMERS),
                     System.currentTimeMillis())));
         } else if (action.getType()==RECEIVE_TIMERS) {

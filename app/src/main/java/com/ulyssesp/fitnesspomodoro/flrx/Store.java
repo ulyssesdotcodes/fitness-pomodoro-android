@@ -42,6 +42,14 @@ public abstract class Store <T extends Parcelable, E extends Enum<E>> {
         mDispatcher.postAction(action);
     }
 
+    protected <R extends Parcelable> void  postAction(E type, R payload) {
+        mDispatcher.postAction(Action.create(type, payload));
+    }
+
+    protected void postAction(E type) {
+        mDispatcher.postAction(Action.create(type));
+    }
+
     public Observable<T> dataObservable() {
         return mDataObservable.distinctUntilChanged();
     }

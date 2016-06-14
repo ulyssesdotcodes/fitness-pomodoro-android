@@ -14,7 +14,7 @@ public class MainActivity extends AppCompatActivity {
     TimerStore mTimerStore;
 
     @Inject
-    Dispatcher<Constants.TimerActions> mDispatcher;
+    Dispatcher<Constants.Actions> mDispatcher;
 
     TimerNotificationManager mTimerNotificationManager;
 

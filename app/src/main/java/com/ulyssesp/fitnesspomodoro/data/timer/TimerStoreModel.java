@@ -3,7 +3,6 @@ package com.ulyssesp.fitnesspomodoro.data.timer;
 import android.os.Parcelable;
 
 import com.google.auto.value.AutoValue;
-import com.ulyssesp.fitnesspomodoro.data.models.Timer;
 
 import java.util.List;
 
