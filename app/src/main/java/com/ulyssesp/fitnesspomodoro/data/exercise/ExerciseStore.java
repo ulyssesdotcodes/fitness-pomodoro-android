@@ -50,17 +50,17 @@ public class ExerciseStore extends Store<ExerciseStoreModel,Constants.Actions> {
 
         if (action.getType() == NEXT_TIMER) {
             result = state.toBuilder()
-                .currentTimer(state.currentTimer() + 1 % state.timers().size())
+                .currentTimer((state.currentTimer() + 1) % state.timers().size())
                 .build();
 
             Timer nextTimer = result.timers().get(result.currentTimer());
 
             if(nextTimer.isBreak()) {
                 int random = new Random().nextInt(state.exercises().size());
-                result = state.withExercise(state.exercises().get(random));
+                result = result.withExercise(state.exercises().get(random));
             }
             else {
-                result = state.withoutExercise();
+                result = result.withoutExercise();
             }
 
         } else if (action.getType() == STOP_TIMER) {

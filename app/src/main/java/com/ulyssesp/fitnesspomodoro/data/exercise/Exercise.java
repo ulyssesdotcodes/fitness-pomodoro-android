@@ -1,8 +1,6 @@
 package com.ulyssesp.fitnesspomodoro.data.exercise;
 
-import android.content.Intent;
 import android.os.Parcelable;
-import android.support.annotation.IntegerRes;
 
 import com.google.auto.value.AutoValue;
 
@@ -14,5 +12,10 @@ public abstract class Exercise implements Parcelable{
 
     public static Exercise create(String name, Integer reps, String units){
         return new AutoValue_Exercise(name, reps, units);
+    }
+
+    @Override
+    public String toString() {
+        return name() + " " + reps() + " " + units();
     }
 }
