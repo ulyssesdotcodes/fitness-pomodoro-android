@@ -1,6 +1,7 @@
 package com.ulyssesp.fitnesspomodoro.flrx;
 
 import android.os.Parcelable;
+import android.support.v4.util.Pair;
 
 import java.util.EnumSet;
 
@@ -15,7 +16,6 @@ import rx.schedulers.Schedulers;
 public abstract class Store <T extends Parcelable, E extends Enum<E>> {
     Dispatcher<E> mDispatcher;
     private Observable<T> mDataObservable;
-    private T mCurrentData;
 
     private final EnumSet<E> mAcceptedActions;
 
@@ -26,9 +26,12 @@ public abstract class Store <T extends Parcelable, E extends Enum<E>> {
         mDataObservable = dispatcher.actionsObservable()
             .observeOn(storeThread)
             .filter((action) ->  acceptedActions.contains(action.getType()))
-            .scan(initialState(), this::reducer)
+            .scan(Pair.create(initialState(), Observable.<Action<E>>empty()),
+                (p, a) -> this.reducer(p.first, a))
+            .doOnNext(p -> p.second.subscribe(this::postAction))
+            .map(p -> p.first)
             .cacheWithInitialCapacity(1)
-            .doOnNext(t -> mCurrentData = t);
+            .onBackpressureDrop();
     }
 
     protected abstract T initialState();
@@ -54,5 +57,5 @@ public abstract class Store <T extends Parcelable, E extends Enum<E>> {
         return mDataObservable.distinctUntilChanged();
     }
 
-    public abstract T reducer(T state, Action<E> action);
+    public abstract Pair<T, Observable<Action<E>>> reducer(T state, Action<E> action);
 }

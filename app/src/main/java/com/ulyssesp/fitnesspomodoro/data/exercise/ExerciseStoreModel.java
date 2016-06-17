@@ -3,12 +3,15 @@ package com.ulyssesp.fitnesspomodoro.data.exercise;
 import android.os.Parcelable;
 
 import com.google.auto.value.AutoValue;
+import com.ulyssesp.fitnesspomodoro.data.timer.Timer;
 import com.ulyssesp.fitnesspomodoro.utils.Optional;
 
 import java.util.List;
 
 @AutoValue
 public abstract class ExerciseStoreModel implements Parcelable{
+    public abstract List<Timer> timers();
+    public abstract Integer currentTimer();
     public abstract List<Exercise> exercises();
     public abstract Optional<Exercise> currentExercise();
 
@@ -31,7 +34,9 @@ public abstract class ExerciseStoreModel implements Parcelable{
     @AutoValue.Builder
     public abstract static class Builder {
         public abstract Builder exercises(List<Exercise> value);
+        public abstract Builder timers(List<Timer> value);
         public abstract Builder currentExercise(Optional<Exercise> value);
+        public abstract Builder currentTimer(Integer value);
         public abstract ExerciseStoreModel build();
     }
 

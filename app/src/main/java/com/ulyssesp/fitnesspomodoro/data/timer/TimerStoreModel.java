@@ -10,6 +10,7 @@ import java.util.List;
 public abstract class TimerStoreModel implements Parcelable {
     public abstract List<Timer> timers();
     public abstract Boolean paused();
+    public abstract Boolean stopped();
     public abstract Long currentTime();
     public abstract String name();
     public abstract Long duration();
@@ -30,6 +31,7 @@ public abstract class TimerStoreModel implements Parcelable {
     public abstract static class Builder {
         public abstract Builder timers(List<Timer> value);
         public abstract Builder paused(Boolean paused);
+        public abstract Builder stopped(Boolean paused);
         public abstract Builder currentTime(Long currentTime);
         public abstract Builder name(String name);
         public abstract Builder duration(Long duration);

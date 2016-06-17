@@ -1,26 +1,34 @@
 package com.ulyssesp.fitnesspomodoro.data.exercise;
 
+import android.support.v4.util.Pair;
+
 import com.ulyssesp.fitnesspomodoro.Constants;
-import com.ulyssesp.fitnesspomodoro.data.timer.TimerChangedModel;
+import com.ulyssesp.fitnesspomodoro.data.timer.Timer;
+import com.ulyssesp.fitnesspomodoro.data.timer.TimerData;
 import com.ulyssesp.fitnesspomodoro.flrx.Action;
 import com.ulyssesp.fitnesspomodoro.flrx.Dispatcher;
 import com.ulyssesp.fitnesspomodoro.flrx.Store;
 import com.ulyssesp.fitnesspomodoro.utils.Optional;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Random;
 
+import rx.Observable;
+
 import static com.ulyssesp.fitnesspomodoro.Constants.Actions.FETCH_EXERCISES;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.NEXT_TIMER;
 import static com.ulyssesp.fitnesspomodoro.Constants.Actions.RECEIVE_EXERCISES;
+import static com.ulyssesp.fitnesspomodoro.Constants.Actions.STOP_TIMER;
 import static com.ulyssesp.fitnesspomodoro.Constants.Actions.TIMER_CHANGED;
 
 public class ExerciseStore extends Store<ExerciseStoreModel,Constants.Actions> {
     public ExerciseStore(Dispatcher<Constants.Actions> dispatcher) {
         super(dispatcher, EnumSet.of(
             FETCH_EXERCISES,
+            NEXT_TIMER,
             RECEIVE_EXERCISES,
+            STOP_TIMER,
             TIMER_CHANGED
         ));
     }
@@ -28,35 +36,37 @@ public class ExerciseStore extends Store<ExerciseStoreModel,Constants.Actions> {
     @Override
     protected ExerciseStoreModel initialState() {
         return ExerciseStoreModel.builder()
-            .exercises(Collections.EMPTY_LIST)
+            .timers(Arrays.asList(TimerData.TIMERS))
+            .currentTimer(0)
+            .exercises(Arrays.asList(ExerciseData.EXERCISES))
             .currentExercise(Optional.absent())
             .build();
     }
 
     @Override
-    public ExerciseStoreModel reducer(ExerciseStoreModel state, Action<Constants.Actions> action) {
+    public Pair<ExerciseStoreModel, Observable<Action<Constants.Actions>>> reducer(ExerciseStoreModel state, Action<Constants.Actions> action) {
         ExerciseStoreModel result = state;
+        Observable<Action<Constants.Actions>> effects = Observable.empty();
 
-        if(action.getType() == FETCH_EXERCISES) {
-            postAction(RECEIVE_EXERCISES,
-                ReceiveExercisesModel.create(Arrays.asList(ExerciseData.EXERCISES)));
-        }
-        else if (action.getType() == RECEIVE_EXERCISES) {
-            ReceiveExercisesModel payload =
-                ReceiveExercisesModel.fromParcel(action.getPayload().get());
-            result = state.toBuilder().exercises(payload.exercises()).build();
-        }
-        else if (action.getType() == TIMER_CHANGED) {
-            TimerChangedModel payload = TimerChangedModel.fromParcel(action.getPayload().get());
-            if(payload.timer().isBreak()) {
+        if (action.getType() == NEXT_TIMER) {
+            result = state.toBuilder()
+                .currentTimer(state.currentTimer() + 1 % state.timers().size())
+                .build();
+
+            Timer nextTimer = result.timers().get(result.currentTimer());
+
+            if(nextTimer.isBreak()) {
                 int random = new Random().nextInt(state.exercises().size());
                 result = state.withExercise(state.exercises().get(random));
             }
             else {
                 result = state.withoutExercise();
             }
+
+        } else if (action.getType() == STOP_TIMER) {
+            result = state.withoutExercise();
         }
 
-        return result;
+        return Pair.create(result, effects);
     }
 }
