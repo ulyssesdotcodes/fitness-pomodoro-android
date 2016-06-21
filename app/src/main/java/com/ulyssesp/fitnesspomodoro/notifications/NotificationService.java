@@ -158,6 +158,7 @@ public class NotificationService extends Service {
         boolean completed = timeCompleted > timerStoreModel.duration();
 
         String title = (completed ? "Extending " : "") + timerStoreModel.name();
+
         long completionTime = completed ?
             timeCompleted - timerStoreModel.duration() :
             timerStoreModel.duration() - timerStoreModel.previouslyCompleted() +
@@ -225,7 +226,7 @@ public class NotificationService extends Service {
     private String formatMillis(long millis) {
         long secondsRemaining = millis / 1000;
         long minutesRemaining = secondsRemaining / 60;
-        return minutesRemaining > 0 ? String.format("%d minutes", minutesRemaining) : "<1 minute";
+        return minutesRemaining < 1 ? "<1 minute" : String.format("%d minutes", minutesRemaining);
     }
 
     private NotificationManagerCompat getNotificationManager() {

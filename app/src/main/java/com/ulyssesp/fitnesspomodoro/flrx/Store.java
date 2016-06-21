@@ -30,8 +30,7 @@ public abstract class Store <T extends Parcelable, E extends Enum<E>> {
                 (p, a) -> this.reducer(p.first, a))
             .doOnNext(p -> p.second.subscribe(this::postAction))
             .map(p -> p.first)
-            .cacheWithInitialCapacity(1)
-            .onBackpressureDrop();
+            .cacheWithInitialCapacity(1);
     }
 
     protected abstract T initialState();
